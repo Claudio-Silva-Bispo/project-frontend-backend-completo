@@ -12,9 +12,11 @@ import '../globals.css';
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   
   return (
-    <AuthProvider>
-      <Component {...pageProps} />
-    </AuthProvider>
+    <SessionProvider session={session}>
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
+    </SessionProvider>
   );
 }
 
