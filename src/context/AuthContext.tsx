@@ -1,8 +1,9 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 interface AuthContextType {
   user: any;
-  login: (userData: any) => void;
+  login: (email: string, senha: string) => void;
   logout: () => void;
 }
 
@@ -13,21 +14,38 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const { data: session } = useSession();
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (session) {
+      setUser(session.user);
+    } else {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
     }
-  }, []);
+  }, [session]);
 
-  const login = (userData: any) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const login = async (email: string, senha: string) => {
+    const res = await signIn('credentials', {
+      redirect: false,
+      email,
+      senha,
+    });
+
+    if (res && res.ok) {
+      const user = await fetch('/api/auth/session');
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      throw new Error('Login failed');
+    }
   };
 
   const logout = () => {
+    signOut({ redirect: false });
     setUser(null);
     localStorage.removeItem('user');
   };
@@ -38,8 +56,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

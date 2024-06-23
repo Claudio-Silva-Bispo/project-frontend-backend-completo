@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const FetchCadastroData: React.FC = () => {
+const TesteCadastroLogin: React.FC = () => {
   const [data, setData] = useState<Array<any>>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,4 +53,4 @@ const FetchCadastroData: React.FC = () => {
   );
 };
 
-export default FetchCadastroData;
+export default TesteCadastroLogin;

@@ -4,9 +4,10 @@ import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import Table from '../components/Table';
 import Tabs from '../components/Tabs';
+import { useAuth } from '../context/AuthContext'; // Ajuste o caminho conforme necessário
 
 const PaginaLogada: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState<string>('Usuarios');
   const [data, setData] = useState<Array<any>>([]);
   const router = useRouter();
@@ -14,28 +15,25 @@ const PaginaLogada: React.FC = () => {
   const tabs = ['Usuarios', 'Cadastro', 'Login', 'Feedback'];
 
   useEffect(() => {
-    // Verifica o localStorage para recuperar informações do usuário
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      router.push('/login'); // Redireciona para a página de login se o usuário não estiver logado
+    if (!user) {
+      router.push('/login');
     }
-  }, [router]);
+  }, [user, router]);
 
   const fetchData = async () => {
     try {
+      let response;
       if (selectedTab === 'Usuarios') {
-        const response = await axios.get('http://localhost:3001/api/User');
-        setData(response.data);
+        response = await axios.get('http://localhost:3001/api/User');
       } else if (selectedTab === 'Cadastro') {
-        const response = await axios.get('http://localhost:3001/api/Cadastro');
-        setData(response.data);
+        response = await axios.get('http://localhost:3001/api/Cadastro');
       } else if (selectedTab === 'Login') {
-        const response = await axios.get('http://localhost:3001/api/Login');
-        setData(response.data);
+        response = await axios.get('http://localhost:3001/api/Login');
       } else if (selectedTab === 'Feedback') {
-        const response = await axios.get('http://localhost:3001/api/Feedback');
+        response = await axios.get('http://localhost:3001/api/Feedback');
+      }
+
+      if (response) {
         setData(response.data);
       }
     } catch (error) {
@@ -44,8 +42,10 @@ const PaginaLogada: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, [selectedTab]);
+    if (user) {
+      fetchData();
+    }
+  }, [selectedTab, user]);
 
   const getHeaders = () => {
     switch (selectedTab) {

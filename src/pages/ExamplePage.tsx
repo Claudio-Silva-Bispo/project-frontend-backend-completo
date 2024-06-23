@@ -1,5 +1,5 @@
 import React from 'react';
-import FetchCadastroData from '../components/FetchCadastroData';
+import FetchCadastroData from './TesteCadastroLogin';
 
 const ExamplePage: React.FC = () => {
   return (
