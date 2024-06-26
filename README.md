@@ -92,3 +92,7 @@ const handleLinkedInLogin = () => {
 6. Atualizar o botao onClick={handleLinkedInLogin}
 
 
+// Para o processo de mapear o visitante 
+
+npm install moment-timezone
+

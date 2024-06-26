@@ -27,6 +27,8 @@ export default function HomePage() {
 
             <button className="px-8 py-3 m-2 text-lg font-semibold border rounded bg-white text-blue-700"><Link href="/PaginaLogada">area logada</Link></button>
 
+            <button className="px-8 py-3 m-2 text-lg font-semibold border rounded bg-white text-blue-700"><Link href="/TestePesquisa">Pesquisa</Link></button>
+
           </div>
         </div>
 
