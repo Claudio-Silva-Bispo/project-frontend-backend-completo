@@ -33,6 +33,22 @@ const collectInitialData = (visitorId: string): any => ({
   enviado: false // Adicionando uma flag para verificar se já foi enviado
 });
 
+const collectUserData = (userId: string): any => ({
+  idUsuario: userId,
+  nome: '', // Preencher com os dados do usuário autenticado
+  email: '', // Preencher com os dados do usuário autenticado
+  paginaVisitada: window.location.pathname,
+  ordemVisita: '1',
+  tempoPermanencia: '',
+  elementosClicados: '',
+  tipoNavegador: navigator.appName,
+  versaoNavegador: navigator.appVersion,
+  tipoDispositivo: getDeviceType(),
+  sistemaOperacional: getOperatingSystem(),
+  dataHoraSessao: getBrazilTime(),
+  enviado: false // Adicionando uma flag para verificar se já foi enviado
+});
+
 const calculateTimeSpent = (start: Date, end: Date) => {
   const duration = moment.duration(moment(end).diff(moment(start)));
   const minutes = Math.floor(duration.asMinutes());
@@ -59,25 +75,48 @@ const validateData = (data: any) => {
 
 const VisitorTracker: React.FC = () => {
   const [visitorData, setVisitorData] = useState<any>(null);
+  const [userData, setUserData] = useState<any>(null);
   const router = useRouter();
   const [startTime, setStartTime] = useState<Date>(new Date());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Adiciona um estado para autenticação
 
   useEffect(() => {
     const visitorId = localStorage.getItem('visitorId') || generateVisitorId();
     localStorage.setItem('visitorId', visitorId);
-    fetchVisitorData(visitorId);
+
+    // Verificar autenticação (simulação)
+    const authToken = localStorage.getItem('authToken');
+    if (authToken) {
+      setIsAuthenticated(true);
+      // Simulação de recuperação de dados do usuário autenticado
+      const userId = 'authenticated-user-id'; // Recuperar o ID real do usuário autenticado
+      setUserData(collectUserData(userId));
+    } else {
+      // Verificar e limpar dados inválidos
+      const storedData = localStorage.getItem('visitorData');
+      if (storedData) {
+        try {
+          JSON.parse(storedData);
+        } catch (error) {
+          console.error('Dados inválidos encontrados no localStorage, limpando...', error);
+          localStorage.removeItem('visitorData');
+        }
+      }
+      fetchVisitorData(visitorId);
+    }
   }, []);
 
   useEffect(() => {
-    if (visitorData) {
-      storeVisitorData(visitorData);
-      console.log('Dados iniciais coletados:', visitorData);
+    if (visitorData || userData) {
+      const data = visitorData || userData;
+      storeVisitorData(data);
+      console.log('Dados iniciais coletados:', data);
 
       const handleRouteChange = (url: string) => {
         const endTime = new Date();
         const timeSpent = calculateTimeSpent(startTime, endTime);
         updateVisitorData(url, timeSpent);
-        sendVisitorDataToBackend(visitorData.enviado);
+        sendVisitorDataToBackend(data.enviado);
         setStartTime(new Date());
       };
 
@@ -87,7 +126,7 @@ const VisitorTracker: React.FC = () => {
         const endTime = new Date();
         const timeSpent = calculateTimeSpent(startTime, endTime);
         updateVisitorData(window.location.pathname, timeSpent);
-        sendVisitorDataToBackend(visitorData.enviado);
+        sendVisitorDataToBackend(data.enviado);
       };
 
       window.addEventListener('beforeunload', handleBeforeUnload);
@@ -99,7 +138,7 @@ const VisitorTracker: React.FC = () => {
         document.removeEventListener('click', handleElementClick);
       };
     }
-  }, [visitorData, startTime, router.events]);
+  }, [visitorData, userData, startTime, router.events]);
 
   const fetchVisitorData = async (visitorId: string) => {
     try {
@@ -133,45 +172,78 @@ const VisitorTracker: React.FC = () => {
   };
 
   const updateVisitorData = (newPage: string, timeSpent: string) => {
-    const existingData = { ...visitorData };
+    const data = visitorData || userData;
+    const existingData = { ...data };
 
     existingData.paginaVisitada += `, ${newPage}`;
     existingData.ordemVisita += `, ${existingData.ordemVisita.split(',').length + 1}`;
     existingData.tempoPermanencia += `, ${timeSpent}`;
     existingData.dataHoraSessao = getBrazilTime();
 
-    setVisitorData(existingData);
+    if (isAuthenticated) {
+      setUserData(existingData);
+    } else {
+      setVisitorData(existingData);
+    }
     storeVisitorData(existingData);
   };
 
   const handleElementClick = (event: MouseEvent) => {
     const clickedText = (event.target as Element).textContent || '';
+    const data = visitorData || userData;
     const newVisitorData = { 
-      ...visitorData, 
-      elementosClicados: visitorData.elementosClicados 
-        ? `${visitorData.elementosClicados}, ${clickedText}` 
+      ...data, 
+      elementosClicados: data.elementosClicados 
+        ? `${data.elementosClicados}, ${clickedText}` 
         : clickedText 
     };
-    setVisitorData(newVisitorData);
+
+    if (isAuthenticated) {
+      setUserData(newVisitorData);
+    } else {
+      setVisitorData(newVisitorData);
+    }
     storeVisitorData(newVisitorData);
   };
 
   const sendVisitorDataToBackend = async (isSent: boolean) => {
     const anonDataString = localStorage.getItem('visitorData');
     const consentDataString = localStorage.getItem('visitorDataWithConsent');
+    const authDataString = isAuthenticated ? JSON.stringify(userData) : null;
 
     if (anonDataString) {
-      const anonData = JSON.parse(anonDataString);
-      if (validateData(anonData)) {
-        console.log('Enviando dados anônimos:', anonData);
-        await sendData(anonData, 'VisitanteAnonimo', isSent);
+      try {
+        const anonData = JSON.parse(anonDataString);
+        if (validateData(anonData)) {
+          console.log('Enviando dados anônimos:', anonData);
+          await sendData(anonData, 'VisitanteAnonimo', isSent);
+        }
+      } catch (error) {
+        console.error('Erro ao processar dados anônimos:', error);
       }
     }
+
     if (consentDataString) {
-      const consentData = JSON.parse(consentDataString);
-      if (validateData(consentData)) {
-        console.log('Enviando dados com consentimento:', consentData);
-        await sendData(consentData, 'VisitanteAceite', isSent);
+      try {
+        const consentData = JSON.parse(consentDataString);
+        if (validateData(consentData)) {
+          console.log('Enviando dados com consentimento:', consentData);
+          await sendData(consentData, 'VisitanteAceite', isSent);
+        }
+      } catch (error) {
+        console.error('Erro ao processar dados com consentimento:', error);
+      }
+    }
+
+    if (authDataString) {
+      try {
+        const authData = JSON.parse(authDataString);
+        if (validateData(authData)) {
+          console.log('Enviando dados autenticados:', authData);
+          await sendData(authData, 'UsuarioAutenticado', isSent);
+        }
+      } catch (error) {
+        console.error('Erro ao processar dados autenticados:', error);
       }
     }
 
@@ -180,7 +252,7 @@ const VisitorTracker: React.FC = () => {
   };
 
   const sendData = async (data: any, endpoint: string, isSent: boolean) => {
-    const url = isSent ? `http://localhost:3001/api/${endpoint}/${data.idVisitante}` : `http://localhost:3001/api/${endpoint}`;
+    const url = isSent ? `http://localhost:3001/api/${endpoint}/${data.idVisitante || data.idUsuario}` : `http://localhost:3001/api/${endpoint}`;
     const method = isSent ? 'PUT' : 'POST';
 
     try {
@@ -205,7 +277,11 @@ const VisitorTracker: React.FC = () => {
       if (!isSent) {
         const updatedData = { ...data, enviado: true };
 
-        setVisitorData(updatedData);
+        if (isAuthenticated) {
+          setUserData(updatedData);
+        } else {
+          setVisitorData(updatedData);
+        }
         storeVisitorData(updatedData);
       }
     } catch (error) {

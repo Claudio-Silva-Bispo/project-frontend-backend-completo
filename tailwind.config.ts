@@ -6,6 +6,10 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+
+   /* Para eu controlar o modo de tema entre claro ou escuro */
+   darkMode: 'class',
+
   theme: {
     extend: {
       backgroundImage: {
@@ -14,6 +18,15 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
     },
+
+    fontFamily: {
+      orelega: ['FonteOrelega', 'sans-serif'],
+      sen: ['FonteSen', 'sans-serif'],
+      manrope: ['FonteManrope', 'sans-serif'],
+    },
+
+  
+
   },
   plugins: [],
 };

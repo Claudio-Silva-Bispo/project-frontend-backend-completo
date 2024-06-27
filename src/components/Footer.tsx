@@ -1,12 +1,12 @@
 export default function Footer(){
     return(
         
-        <main className="bg-gray-900 text-white">
+        <main className="bg-gray-900 text-white mb-20 md:mb-0">
 
-            <div className="p-10 flex justify-around items-center text-center">
+            <div className="p-10 grid md:flex justify-around items-center text-center gap-20 md:gap-0">
                 
                 <nav className="flex flex-col">
-                    <h6 className="footer-title uppercase">services</h6>
+                    <h6 className="footer-title uppercase mb-3 md:mb-0">services</h6>
                     <a className="link link-hover">sobre projeto</a>
                     <a className="link link-hover">funcionalidades</a>
                     <a className="link link-hover">marketing</a>
@@ -14,7 +14,7 @@ export default function Footer(){
                 </nav>
 
                 <nav className="flex flex-col">
-                    <h6 className="footer-title uppercase">empresa</h6>
+                    <h6 className="footer-title uppercase mb-3 md:mb-0">empresa</h6>
                     <a className="link link-hover">sobre nós</a>
                     <a className="link link-hover">contato</a>
                     <a className="link link-hover">feedback</a>
@@ -22,7 +22,7 @@ export default function Footer(){
                 </nav>
 
                 <nav className="flex flex-col">
-                    <h6 className="footer-title uppercase">legal</h6>
+                    <h6 className="footer-title uppercase mb-3 md:mb-0">legal</h6>
                     <a className="link link-hover">terms of use</a>
                     <a className="link link-hover">privacy policy</a>
                     <a className="link link-hover">cookie policy</a>
@@ -30,7 +30,7 @@ export default function Footer(){
 
             </div>
 
-            <div className="flex justify-between p-10 border-base-300 border-t">
+            <div className="grid md:flex justify-between p-10 border-base-300 border-t gap-10 md:gap-0">
 
                 <div className="flex gap-10 justify-center items-center">
 
@@ -59,7 +59,7 @@ export default function Footer(){
                 </div>
 
                 <nav className="flex">
-                    <div className="grid grid-flow-col gap-4">
+                    <div className="grid grid-flow-col gap-20 md:gap-4">
                     <a>
                         <svg
                         xmlns="http://www.w3.org/2000/svg"

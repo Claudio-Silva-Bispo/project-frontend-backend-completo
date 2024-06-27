@@ -46,7 +46,7 @@ const TestePesquisa: React.FC = () => {
   };
 
   return (
-    <div className="h-[100vh] flex flex-col items-center justify-center mt-20">
+    <div className="h-[100vh] flex flex-col items-center justify-center mt-20 bg-white text-black dark:bg-gray-800 dark:text-white">
       {response && (
         <div className="mt-4 text-center">
           <h2>Resposta:</h2>

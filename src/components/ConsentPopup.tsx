@@ -15,7 +15,7 @@ const ConsentPopup: React.FC<ConsentPopupProps> = ({ onConsentGiven }) => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 flex justify-between items-center">
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 flex justify-between items-center max-w-[1380px]">
       <span>Usamos cookies para melhorar sua experiência. Você aceita coletar seus dados?</span>
       <button onClick={handleConsent} className="bg-blue-500 px-4 py-2 rounded">
         Aceitar
