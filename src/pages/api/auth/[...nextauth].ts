@@ -1,10 +1,27 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions, User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import LinkedInProvider from "next-auth/providers/linkedin";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { JWT } from "next-auth/jwt";
 
-export default NextAuth({
+interface CustomUser extends User {
+  token?: string; // Token é opcional, pois não é retornado por provedores OAuth
+}
+
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
+  }
+}
+
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -24,8 +41,8 @@ export default NextAuth({
         email: { label: "Email", type: "email" },
         senha: { label: "Senha", type: "password" },
       },
-      async authorize(credentials) {
-        const res = await fetch("http://localhost:3001/api/User/Login", {
+      async authorize(credentials, req) {
+        const res = await fetch("http://localhost:3001/api/LoginAutenticacao/login?tipoLogin=comum", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -34,11 +51,12 @@ export default NextAuth({
           }),
         });
 
-        const user = await res.json();
+        const data = await res.json();
 
-        if (res.ok && user) {
-          return user;
+        if (res.ok && data.token) {
+          return { id: credentials?.email, token: data.token } as CustomUser;
         } else {
+          console.error("Failed to authorize user", res.status, data);
           return null;
         }
       },
@@ -48,20 +66,28 @@ export default NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-    async session({ session, token }) {
-      if (token.user) {
-        session.user = token.user as any; // Cast to any to satisfy TypeScript
-      }
-      return session;
-    },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.user = user;
+        const customUser = user as CustomUser;
+        // Apenas defina accessToken se vier do fluxo de credenciais
+        if (customUser.token) {
+          token.accessToken = customUser.token;
+        }
       }
       return token;
+    },
+    async session({ session, token }) {
+      // Apenas adicione accessToken se existir
+      if (token.accessToken) {
+        session.accessToken = token.accessToken as string;
+      }
+      return session;
     },
   },
   pages: {
     signIn: "/login",
   },
-});
+  debug: true, // Habilitar logs de debug
+};
+
+export default NextAuth(authOptions);
